@@ -5,7 +5,7 @@ import torch
 import tensorflow as tf
 import logging
 from typing import Literal
-from data_utils import (
+from preprocess_data import (
     INPUT_FEATURES,
     OUTPUT_FEATURES,
     _get_features_dict,
@@ -93,33 +93,3 @@ class NextDayFireDataset(torch.utils.data.Dataset):
         return item, target
 
 
-if __name__ == '__main__':
-    from torch.utils.data import DataLoader
-
-    # Look at the evaluation dataset
-    file_pattern = '/Users/lzm/Desktop/7980 Capstone/rayan 项目/northamerica_2012-2023/train/*_ongoing_*.tfrecord'
-    data_filenames = tf.io.gfile.glob(file_pattern)
-    limit_features = ['NDVI', 'elevation', 'tmmx']
-    # Get the size of the dataset
-    val_set = tf.data.TFRecordDataset(data_filenames)
-    val_set = NextDayFireDataset(
-        val_set,
-        limit_features_list=limit_features,
-        use_change_mask=False,
-        sampling_method='random_crop',
-        mode='val',
-    )
-    print(len(val_set))
-    val_loader = DataLoader(val_set, batch_size=32, shuffle=True)
-    with torch.autocast(device_type='cpu', enabled=False):
-        for i, (inputs, labels) in enumerate(val_loader):
-            print(inputs.shape)
-            # Get min and max values
-            print(labels.flatten().max())
-            print(labels.flatten().min())
-            hist, bin_edges = np.histogram(labels, bins=3)
-            print(hist)
-            print(bin_edges)
-            print(labels.shape)
-            print(labels[0])
-            break

@@ -391,3 +391,10 @@ def random_crop(img: np.array, target: np.array, crop_size: int = 32):
     target = target[:, top : top + crop_size, left : left + crop_size]
 
     return img, target
+
+def tf_dataset_to_numpy(tf_dataset):
+    data = []
+    for input_img, output_img in tf_dataset:
+        data.append((input_img.numpy(), output_img.numpy()))
+    return data
+
