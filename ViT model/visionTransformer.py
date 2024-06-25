@@ -18,15 +18,12 @@ class VisionTransformer(nn.Module):
         self.classifier = nn.Linear(config['emb_dim'], num_classes)
 
     def forward(self, x):
-         # Patchify and add CLS token
         x = self.patch_embedding(x)
-
-         # Go through the transformer layers
+        attentions = []
         for layer in self.transformer_layers:
-            x = layer(x)
-        
+            x, att = layer(x)
+            attentions.append(att)
         x = self.norm(x)
         cls_token = x[:, 0]
         logits = self.classifier(cls_token)
-
-        return logits
+        return logits, attentions
