@@ -1,5 +1,6 @@
 import tensorflow as tf
 from tensorflow.keras import layers
+import numpy as np  # Add this line
 
 def window_partition(x, window_size):
     B, H, W, C = x.shape
@@ -74,7 +75,7 @@ class SwinTransformerBlock(layers.Layer):
             layers.Dropout(dropout)
         ])
         
-        if min(self.window_size) <= 0:
+        if self.window_size <= 0:
             self.shift_size = 0
             self.window_size = min(self.window_size)
         
@@ -84,7 +85,7 @@ class SwinTransformerBlock(layers.Layer):
             self.window_size = min(H, W)
         
         if self.shift_size > 0:
-            img_mask = np.zeros((1, H, W, 1))
+            img_mask = np.zeros((1, H, W, 1))  # Corrected this line
             h_slices = (slice(0, -self.window_size), slice(-self.window_size, -self.shift_size), slice(-self.shift_size, None))
             w_slices = (slice(0, -self.window_size), slice(-self.window_size, -self.shift_size), slice(-self.shift_size, None))
             cnt = 0
@@ -103,7 +104,8 @@ class SwinTransformerBlock(layers.Layer):
         self.attn_mask = tf.Variable(initial_value=attn_mask, trainable=False)
         
     def call(self, x):
-        H, W = self.input_shape[1], self.input_shape[2]
+        input_shape = tf.shape(x)
+        H, W = input_shape[1], input_shape[2]
         B, L, C = x.shape
         assert L == H * W, "input feature has wrong size"
         
@@ -132,17 +134,30 @@ class SwinTransformerBlock(layers.Layer):
         x = self.drop_path(x) + shortcut
         x = self.drop_path(self.mlp(self.norm2(x))) + x
         return x
+
+class ReshapeLayer(layers.Layer):
+    def __init__(self, target_shape):
+        super(ReshapeLayer, self).__init__()
+        self.target_shape = target_shape
+
+    def call(self, inputs):
+        return tf.reshape(inputs, self.target_shape)
+
 def SwinUNet(input_shape, num_classes):
     inputs = layers.Input(shape=input_shape, name="input_layer")
 
     # Encoder
     x = layers.Conv2D(64, (3, 3), activation='relu', padding='same')(inputs)
+    x = ReshapeLayer((-1, input_shape[0] * input_shape[1], 64))(x)  # Add reshape here
     x = SwinTransformerBlock(dim=64, num_heads=4, window_size=4, shift_size=2)(x)
+    x = ReshapeLayer((-1, input_shape[0], input_shape[1], 64))(x)  # Reshape back to image dimensions
     x = layers.Conv2D(64, (3, 3), activation='relu', padding='same')(x)
 
     # Decoder
     x = layers.Conv2D(64, (3, 3), activation='relu', padding='same')(x)
+    x = ReshapeLayer((-1, input_shape[0] * input_shape[1], 64))(x)  # Add reshape here
     x = SwinTransformerBlock(dim=64, num_heads=4, window_size=4, shift_size=2)(x)
+    x = ReshapeLayer((-1, input_shape[0], input_shape[1], 64))(x)  # Reshape back to image dimensions
     outputs = layers.Conv2D(num_classes, (1, 1), activation='sigmoid')(x)
 
     model = tf.keras.Model(inputs, outputs, name="SwinUNet")
