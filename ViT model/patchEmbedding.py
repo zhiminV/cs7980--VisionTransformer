@@ -1,9 +1,8 @@
 import torch
 import torch.nn as nn
 import tensorflow as tf
-from preprocess_data import get_dataset
 import matplotlib.pyplot as plt
-
+from preprocess_data import get_dataset
 
 # Define PatchEmbedding class
 class PatchEmbedding(nn.Module):
@@ -23,6 +22,12 @@ class PatchEmbedding(nn.Module):
         # Linear layer to project patches to embedding dimension
         self.projection = nn.Linear(self.im_channels * self.patch_height * self.patch_width, self.emb_dim)
         
+        # Class token
+        self.class_token = nn.Parameter(torch.zeros(1, 1, self.emb_dim))
+        
+        # Position embeddings
+        self.position_embeddings = nn.Parameter(torch.zeros(1, self.num_patches + 1, self.emb_dim))
+        
         # Dropout layer
         self.dropout = nn.Dropout(self.patch_emb_drop)
         
@@ -32,13 +37,39 @@ class PatchEmbedding(nn.Module):
         patches = x.unfold(2, self.patch_height, self.patch_height).unfold(3, self.patch_width, self.patch_width)
         patches = patches.contiguous().view(batch_size, channels, -1, self.patch_height * self.patch_width)
         patches = patches.permute(0, 2, 1, 3)  # Rearrange for linear projection
+        
+        # Visualization: Reshape patches back to image format for visualization
+        patches_image = patches.contiguous().view(batch_size, -1, channels, self.patch_height, self.patch_width)
+        self.plot_patches(patches_image)
+        
         patches = patches.contiguous().view(batch_size, -1, channels * self.patch_height * self.patch_width)
         
         # Apply linear projection and dropout
         embeddings = self.projection(patches)
         embeddings = self.dropout(embeddings)
+
+        # Add class token
+        class_tokens = self.class_token.expand(batch_size, -1, -1)
+        embeddings = torch.cat((class_tokens, embeddings), dim=1)
+
+        # Add position embeddings
+        embeddings = embeddings + self.position_embeddings
+        
+        # Apply dropout
+        embeddings = self.dropout(embeddings)
         
         return embeddings
+    
+    def plot_patches(self, patches_image):
+        num_patches = patches_image.shape[1]
+        num_images = min(2, patches_image.shape[0])
+        fig, axs = plt.subplots(num_images, num_patches, figsize=(num_patches * 2, num_images * 2))
+        for i in range(num_images):
+            for j in range(num_patches):
+                img = patches_image[i, j].permute(1, 2, 0).detach().numpy()
+                axs[i, j].imshow(img[:, :, :3])
+                axs[i, j].axis('off')
+        plt.show()
 
 # Configuration for Patch Embedding
 config = {
