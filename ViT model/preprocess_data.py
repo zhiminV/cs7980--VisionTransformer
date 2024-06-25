@@ -113,30 +113,30 @@ def get_dataset(file_pattern, data_size, sample_size, batch_size, num_in_channel
     return dataset
 
 
-# Constants
-DATA_SIZE = 64
-PATCH_SIZE = 64  # Can change as needed; in Bronte's paper, she made it 32
-BATCH_SIZE = 32
+# # Constants
+# DATA_SIZE = 64
+# PATCH_SIZE = 64  # Can change as needed; in Bronte's paper, she made it 32
+# BATCH_SIZE = 32
 
-# Load dataset and print input image size and channels
-train_dataset = get_dataset(
-    file_pattern='/Users/lzm/Desktop/7980 Capstone/rayan 项目/northamerica_2012-2023/train/*_ongoing_*.tfrecord',
-    data_size=DATA_SIZE,
-    sample_size=PATCH_SIZE,
-    batch_size=BATCH_SIZE,
-    num_in_channels=12,
-    compression_type=None,
-    clip_and_normalize=True,
-    clip_and_rescale=False,
-    random_crop=True,
-    center_crop=False
-)
+# # Load dataset and print input image size and channels
+# train_dataset = get_dataset(
+#     file_pattern='/Users/lzm/Desktop/7980 Capstone/rayan 项目/northamerica_2012-2023/train/*_ongoing_*.tfrecord',
+#     data_size=DATA_SIZE,
+#     sample_size=PATCH_SIZE,
+#     batch_size=BATCH_SIZE,
+#     num_in_channels=12,
+#     compression_type=None,
+#     clip_and_normalize=True,
+#     clip_and_rescale=False,
+#     random_crop=True,
+#     center_crop=False
+# )
 
-#train_dataset is a TensorFlow dataset object, 
-# not a PyTorch tensor, and thus doesn't have a shape attribute. 
-# To correctly process batches from the TensorFlow dataset and then pass them to your PyTorch model, you need to iterate over the dataset and convert the batches to PyTorch tensors.
+# #train_dataset is a TensorFlow dataset object, 
+# # not a PyTorch tensor, and thus doesn't have a shape attribute. 
+# # To correctly process batches from the TensorFlow dataset and then pass them to your PyTorch model, you need to iterate over the dataset and convert the batches to PyTorch tensors.
 
-# Print an example batch to check shapes
-for inputs, labels in train_dataset:
-    print(f"Example batch input shape: {inputs.shape}, Example batch number of channels: {inputs.shape[-1]}")
-    break
+# # Print an example batch to check shapes
+# for inputs, labels in train_dataset:
+#     print(f"Example batch input shape: {inputs.shape}, Example batch number of channels: {inputs.shape[-1]}")
+#     break

@@ -1,8 +1,8 @@
 import torch
 import torch.nn as nn
 import matplotlib.pyplot as plt
-from patchEmbedding import PatchEmbedding
-from preprocess_data import train_dataset
+# from patchEmbedding import PatchEmbedding
+# from preprocess_data import train_dataset
 
 class MultiHeadSelfAttention(nn.Module):
     def __init__(self, emb_dim, num_heads, dropout_rate):
@@ -49,58 +49,58 @@ class MultiHeadSelfAttention(nn.Module):
         
         return out, attention
 
-# Configuration for Patch Embedding
-config = {
-    'image_height': 64,
-    'image_width': 64,
-    'im_channels': 12,
-    'emb_dim': 768,
-    'patch_emb_drop': 0.1,
-    'patch_height': 4,
-    'patch_width': 4,
-}
+# # Configuration for Patch Embedding
+# config = {
+#     'image_height': 64,
+#     'image_width': 64,
+#     'im_channels': 12,
+#     'emb_dim': 768,
+#     'patch_emb_drop': 0.1,
+#     'patch_height': 4,
+#     'patch_width': 4,
+# }
 
-# Initialize Patch Embedding
-patch_embedding = PatchEmbedding(config)
+# # Initialize Patch Embedding
+# patch_embedding = PatchEmbedding(config)
 
-# Initialize MultiHeadSelfAttention
-attention_layer = MultiHeadSelfAttention(emb_dim=768, num_heads=8, dropout_rate=0.1)
+# # Initialize MultiHeadSelfAttention
+# attention_layer = MultiHeadSelfAttention(emb_dim=768, num_heads=8, dropout_rate=0.1)
 
-# Constants
-DATA_SIZE = 64
-PATCH_SIZE = 64
-BATCH_SIZE = 32
+# # Constants
+# DATA_SIZE = 64
+# PATCH_SIZE = 64
+# BATCH_SIZE = 32
 
-# Example data
-# Assuming the inputs are prepared, similar to how it was done in the previous example
+# # Example data
+# # Assuming the inputs are prepared, similar to how it was done in the previous example
 
-# Convert TensorFlow dataset to PyTorch tensors and process them
-for tf_inputs, tf_labels in train_dataset:
-    # Convert TensorFlow tensors to NumPy arrays, then to PyTorch tensors
-    inputs = torch.from_numpy(tf_inputs.numpy()).permute(0, 3, 1, 2)  # Convert (batch_size, height, width, channels) to (batch_size, channels, height, width)
-    labels = torch.from_numpy(tf_labels.numpy()).permute(0, 3, 1, 2)
+# # Convert TensorFlow dataset to PyTorch tensors and process them
+# for tf_inputs, tf_labels in train_dataset:
+#     # Convert TensorFlow tensors to NumPy arrays, then to PyTorch tensors
+#     inputs = torch.from_numpy(tf_inputs.numpy()).permute(0, 3, 1, 2)  # Convert (batch_size, height, width, channels) to (batch_size, channels, height, width)
+#     labels = torch.from_numpy(tf_labels.numpy()).permute(0, 3, 1, 2)
 
-    # Pass the inputs through the patch embedding layer
-    inputs_emb = patch_embedding(inputs)
-    print(f"Input embeddings shape: {inputs_emb.shape}")
+#     # Pass the inputs through the patch embedding layer
+#     inputs_emb = patch_embedding(inputs)
+#     print(f"Input embeddings shape: {inputs_emb.shape}")
 
-    # Pass the embeddings through the attention layer
-    attention_output, attention_weights = attention_layer(inputs_emb)
-    print(f"Attention output shape: {attention_output.shape}")
-    print(f"Attention weights shape: {attention_weights.shape}")
+#     # Pass the embeddings through the attention layer
+#     attention_output, attention_weights = attention_layer(inputs_emb)
+#     print(f"Attention output shape: {attention_output.shape}")
+#     print(f"Attention weights shape: {attention_weights.shape}")
 
-    # Visualize some attention weights
-    def plot_attention_weights(attention_weights, num_images=2):
-        fig, axs = plt.subplots(num_images, 1, figsize=(10, 10))
-        for i in range(num_images):
-            att = attention_weights[i, 0].detach().numpy()  # Visualizing the attention weights for the first head
+#     # Visualize some attention weights
+#     def plot_attention_weights(attention_weights, num_images=2):
+#         fig, axs = plt.subplots(num_images, 1, figsize=(10, 10))
+#         for i in range(num_images):
+#             att = attention_weights[i, 0].detach().numpy()  # Visualizing the attention weights for the first head
 
-            # Plot attention weights as heatmap
-            axs[i].imshow(att, aspect='auto', cmap='viridis')
-            axs[i].set_title(f"Attention Weights {i+1}")
-            axs[i].axis('off')
-        plt.show()
+#             # Plot attention weights as heatmap
+#             axs[i].imshow(att, aspect='auto', cmap='viridis')
+#             axs[i].set_title(f"Attention Weights {i+1}")
+#             axs[i].axis('off')
+#         plt.show()
 
-    # Plot some attention weights
-    plot_attention_weights(attention_weights)
-    break
+#     # Plot some attention weights
+#     plot_attention_weights(attention_weights)
+#     break
