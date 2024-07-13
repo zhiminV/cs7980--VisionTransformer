@@ -7,7 +7,7 @@ from attention import MultiHeadSelfAttention
 from transformerLayer import TransformerEncoderLayer
 
 class VisionTransformer(nn.Module):
-    def __init__(self, config, num_classes):
+    def __init__(self, config, num_classes=1):
         super(VisionTransformer, self).__init__()
         self.patch_embedding = PatchEmbedding(config)
         self.transformer_layers = nn.ModuleList([
@@ -15,15 +15,46 @@ class VisionTransformer(nn.Module):
             for _ in range(config['num_layers'])
         ])
         self.norm = nn.LayerNorm(config['emb_dim'])
-        self.classifier = nn.Linear(config['emb_dim'], num_classes)
+        self.upsample = nn.Sequential(
+            nn.ConvTranspose2d(config['emb_dim'], 512, kernel_size=2, stride=2),
+            nn.ReLU(inplace=True),
+            nn.ConvTranspose2d(512, 256, kernel_size=2, stride=2),
+            nn.ReLU(inplace=True),
+            nn.ConvTranspose2d(256, 128, kernel_size=2, stride=2),
+            nn.ReLU(inplace=True),
+            nn.ConvTranspose2d(128, 64, kernel_size=2, stride=2),
+            nn.ReLU(inplace=True),
+            nn.ConvTranspose2d(64, num_classes, kernel_size=1),
+            nn.Sigmoid()
+        )
 
     def forward(self, x):
         x = self.patch_embedding(x)
-        attentions = []
         for layer in self.transformer_layers:
-            x, att = layer(x)
-            attentions.append(att)
+            x, _ = layer(x)
         x = self.norm(x)
-        cls_token = x[:, 0]
-        logits = self.classifier(cls_token)
-        return logits, attentions
+        x = x[:, 1:]  # Remove class token
+        # Reshape to 2D feature map
+        n, l, c = x.shape
+        h = w = int(l ** 0.5)
+        x = x.permute(0, 2, 1).view(n, c, h, w)
+        # Upsample to original size
+        x = self.upsample(x)
+        return x
+
+# Configuration for ViT model
+config = {
+    'image_height': 32,
+    'image_width': 32,
+    'im_channels': 12,
+    'emb_dim': 768,
+    'patch_emb_drop': 0.1,
+    'patch_height': 4,
+    'patch_width': 4,
+    'num_heads': 8,
+    'mlp_dim': 3072,
+    'num_layers': 12,
+    'dropout_rate': 0.1
+}
+
+vit_model = VisionTransformer(config, num_classes=1)
