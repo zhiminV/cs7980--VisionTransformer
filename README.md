@@ -5,7 +5,8 @@ cd ViT model
 #
 pip install -r requirements.txt
 #
-pip install opencv-python 
+pip install torch torchvision tqdm matplotlib opencv-python pyyaml
+
 
 # Configuration
 config/default.yaml - Allows you to play with different aspects of VIT
