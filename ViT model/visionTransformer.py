@@ -42,19 +42,3 @@ class VisionTransformer(nn.Module):
         x = self.upsample(x)
         return x
 
-# Configuration for ViT model
-config = {
-    'image_height': 32,
-    'image_width': 32,
-    'im_channels': 12,
-    'emb_dim': 768,
-    'patch_emb_drop': 0.1,
-    'patch_height': 4,
-    'patch_width': 4,
-    'num_heads': 8,
-    'mlp_dim': 3072,
-    'num_layers': 12,
-    'dropout_rate': 0.1
-}
-
-vit_model = VisionTransformer(config, num_classes=1)
