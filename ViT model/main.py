@@ -7,6 +7,7 @@ from visionTransformer import VisionTransformer
 from preprocess_data import get_dataset
 from matplotlib import colors
 import matplotlib.pyplot as plt
+import numpy as np
 
 # Configuration for ViT model
 config = {
@@ -110,17 +111,23 @@ def show_inference(n_rows: int, features: tf.Tensor, label: tf.Tensor, predictio
     for i in range(n_rows):
         plt.subplot(n_rows, 3, i * 3 + 1)
         plt.title("Previous day fire")
-        plt.imshow(features[i, :, :, -1], cmap=CMAP, norm=NORM)
+        feature_img = np.clip(features[i, :, :, -1].numpy(), 0, 1)  # Clip the data to [0, 1]
+        plt.imshow(feature_img, cmap=CMAP, norm=NORM)
         plt.axis('off')
+
         plt.subplot(n_rows, 3, i * 3 + 2)
         plt.title("True next day fire")
-        plt.imshow(label[i, :, :, 0], cmap=CMAP, norm=NORM)
+        label_img = np.clip(label[i, :, :, 0].numpy(), 0, 1)  # Clip the data to [0, 1]
+        plt.imshow(label_img, cmap=CMAP, norm=NORM)
         plt.axis('off')
+    
         plt.subplot(n_rows, 3, i * 3 + 3)
         plt.title("Predicted next day fire")
-        plt.imshow(prediction[i, :, :])
+        pred_img = np.clip(prediction[i, :, :], 0, 1)  # Clip the data to [0, 1]
+        plt.imshow(pred_img)
         plt.axis('off')
     plt.tight_layout()
+    plt.show()
 
 features, labels = next(iter(test_dataset))
 show_inference(5, features, labels, lambda x: torch.sigmoid(vit_model(x)).detach().cpu().numpy())
