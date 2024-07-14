@@ -90,7 +90,7 @@ def plot_train_and_val_losses(train_losses, val_losses):
 plot_train_and_val_losses(train_losses, val_losses)
 
 # Load the best model for testing
-vit_model.load_state_dict(torch.load("best_vit_model.pth"))
+vit_model.load_state_dict(torch.load("vit_model.pth"))
 vit_model.to(device)
 
 print("Evaluation...")

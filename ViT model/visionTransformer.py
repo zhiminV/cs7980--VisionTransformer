@@ -16,9 +16,9 @@ class VisionTransformer(nn.Module):
         ])
         self.norm = nn.LayerNorm(config['emb_dim'])
         self.upsample = nn.Sequential(
-            nn.ConvTranspose2d(config['emb_dim'], 512, kernel_size=2, stride=2),
+            nn.ConvTranspose2d(config['emb_dim'], 512, kernel_size=4, stride=4),
             nn.ReLU(inplace=True),
-            nn.ConvTranspose2d(512, 256, kernel_size=2, stride=2),
+            nn.ConvTranspose2d(512, 256, kernel_size=4, stride=4),
             nn.ReLU(inplace=True),
             nn.ConvTranspose2d(256, 128, kernel_size=2, stride=2),
             nn.ReLU(inplace=True),

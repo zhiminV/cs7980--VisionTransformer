@@ -1,5 +1,5 @@
 import torch
-import tensorflow as tf
+import torch.nn as nn
 import numpy as np
 from tqdm import tqdm
 from metrics import IoU_metric, recall_metric, precision_metric
@@ -17,17 +17,19 @@ def evaluate_model(prediction_function, eval_dataset, device='cuda'):
         
         predictions = prediction_function(inputs)
         
-        # Convert predictions and labels to TensorFlow tensors for metric computation
-        predictions_tf = tf.convert_to_tensor(predictions)
-        labels_tf = tf.convert_to_tensor(labels.detach().cpu().numpy())
+        if predictions.shape != labels.shape:
+            predictions = torch.tensor(predictions, dtype=torch.float32)
+            predictions = nn.functional.interpolate(predictions, size=labels.shape[2:], mode='bilinear', align_corners=False).to(device)
+        
+        # Clip target values to the range [0, 1]
+        labels = torch.clamp(labels, 0, 1)
         
         for i in range(inputs.shape[0]):
-            IoU_measures.append(IoU_metric(labels_tf[i, :, :, 0], predictions_tf[i, :, :]))
-            recall_measures.append(recall_metric(labels_tf[i, :, :, 0], predictions_tf[i, :, :]))
-            precision_measures.append(precision_metric(labels_tf[i, :, :, 0], predictions_tf[i, :, :]))
+            IoU_measures.append(IoU_metric(labels[i, 0], predictions[i]))
+            recall_measures.append(recall_metric(labels[i, 0], predictions[i]))
+            precision_measures.append(precision_metric(labels[i, 0], predictions[i]))
         
-        labels_cleared = tf.where(labels_tf < 0, 0, labels_tf)
-        losses.append(bce_dice_loss(labels_cleared, tf.expand_dims(predictions_tf, axis=-1)))
+        losses.append(bce_dice_loss(labels, torch.tensor(predictions, dtype=torch.float32).to(device)).item())
             
     mean_IoU = np.mean(IoU_measures)
     mean_recall = np.mean(recall_measures)

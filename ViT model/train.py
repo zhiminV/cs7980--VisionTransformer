@@ -1,4 +1,5 @@
 import torch
+import torch.nn as nn
 import torch.optim as optim
 from tqdm import tqdm
 import numpy as np
@@ -25,12 +26,14 @@ def train_model(model, train_dataset, validation_dataset, epochs=10, device='cud
             optimizer.zero_grad()
             outputs = model(inputs)
             
-            # Convert outputs and labels to TensorFlow tensors for loss computation
-            outputs_tf = tf.convert_to_tensor(outputs.detach().cpu().numpy())
-            labels_tf = tf.convert_to_tensor(labels.detach().cpu().numpy())
+            # Ensure outputs and labels are the same size
+            if outputs.size() != labels.size():
+                outputs = nn.functional.interpolate(outputs, size=labels.size()[2:], mode='bilinear', align_corners=False)
             
-            loss = bce_dice_loss(labels_tf, outputs_tf)
-            loss = torch.tensor(loss.numpy()).to(device)  # Convert back to PyTorch tensor and move to GPU
+            # Clip target values to the range [0, 1]
+            labels = torch.clamp(labels, 0, 1)
+            
+            loss = bce_dice_loss(labels, outputs)
             
             loss.backward()
             optimizer.step()
@@ -40,12 +43,12 @@ def train_model(model, train_dataset, validation_dataset, epochs=10, device='cud
         
         print("Evaluation...")
         model.eval()
-        IoU, recall, precision, val_loss = evaluate_model(lambda x: torch.sigmoid(model(x)).detach().cpu().numpy(), validation_dataset)
+        IoU, recall, precision, val_loss = evaluate_model(lambda x: torch.sigmoid(model(x)).detach().cpu().numpy(), validation_dataset, device)
         print(f"Mean IoU: {IoU}\nMean precision: {precision}\nMean recall: {recall}\nValidation loss: {val_loss}\n")
         
         if IoU > best_IoU:
             best_IoU = IoU
-            torch.save(model.state_dict(), "best_vit_model.pth")
+            torch.save(model.state_dict(), "vit_model.pth")
         
         print(f'Epoch: {epoch}, Train loss: {np.mean(losses)}')
         batch_losses.append(np.mean(losses))
