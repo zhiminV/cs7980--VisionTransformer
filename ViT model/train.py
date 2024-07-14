@@ -34,6 +34,10 @@ def train_model(model, train_dataset, validation_dataset, epochs=10, device='cud
             labels = torch.clamp(labels, 0, 1)
             
             loss = bce_dice_loss(labels, outputs)
+
+             # Ensure loss is a scalar
+            if loss.dim() > 0:
+                loss = loss.mean()
             
             loss.backward()
             optimizer.step()
