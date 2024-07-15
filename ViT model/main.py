@@ -120,13 +120,13 @@ def show_inference(n_rows: int, features: tf.Tensor, label: tf.Tensor, predictio
 
         plt.subplot(n_rows, 3, i * 3 + 2)
         plt.title("True next day fire")
-        label_img = label[i, :, :, 0].cpu().numpy()  # 转换为 NumPy 数组
+        label_img = label[i, 0, :, :].cpu().numpy()   # 转换为 NumPy 数组
         plt.imshow(label_img, cmap=CMAP, norm=NORM)
         plt.axis('off')
     
         plt.subplot(n_rows, 3, i * 3 + 3)
         plt.title("Predicted next day fire")
-        pred_img = prediction[i, :, :]  # 转换为 NumPy 数组
+        pred_img = prediction[i, 0, :, :]  # 确保是二维数组
         plt.imshow(pred_img)
         plt.axis('off')
     plt.tight_layout()
