@@ -27,7 +27,7 @@ config = {
 # Constants
 DATA_SIZE = 64
 PATCH_SIZE = 64
-BATCH_SIZE = 32
+BATCH_SIZE = 32 # 根据GPU 内存来调size， 4090 24G内存是可以跑 BATCH_SIZE = 8
 NUM_CLASSES = 1
 EPOCHS = 20
 LEARNING_RATE = 0.001
