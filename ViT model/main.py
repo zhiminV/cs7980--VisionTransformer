@@ -107,27 +107,35 @@ def show_inference(n_rows: int, features: tf.Tensor, label: tf.Tensor, predictio
     
     fig = plt.figure(figsize=(15, n_rows * 4))
     
+    # 确保传递给 prediction_function 的是 PyTorch Tensor
+    features = features.permute(0, 2, 3, 1)  # 将特征张量调整为 (batch, height, width, channels)
     prediction = prediction_function(features)
+
     for i in range(n_rows):
         plt.subplot(n_rows, 3, i * 3 + 1)
         plt.title("Previous day fire")
-        feature_img = np.clip(features[i, :, :, -1].numpy(), 0, 1)  # Clip the data to [0, 1]
+        feature_img = features[i, :, :, -1].cpu().numpy()  # 转换为 NumPy 数组
         plt.imshow(feature_img, cmap=CMAP, norm=NORM)
         plt.axis('off')
 
         plt.subplot(n_rows, 3, i * 3 + 2)
         plt.title("True next day fire")
-        label_img = np.clip(label[i, :, :, 0].numpy(), 0, 1)  # Clip the data to [0, 1]
+        label_img = label[i, :, :, 0].cpu().numpy()  # 转换为 NumPy 数组
         plt.imshow(label_img, cmap=CMAP, norm=NORM)
         plt.axis('off')
     
         plt.subplot(n_rows, 3, i * 3 + 3)
         plt.title("Predicted next day fire")
-        pred_img = np.clip(prediction[i, :, :], 0, 1)  # Clip the data to [0, 1]
+        pred_img = prediction[i, :, :]  # 转换为 NumPy 数组
         plt.imshow(pred_img)
         plt.axis('off')
     plt.tight_layout()
     plt.show()
 
 features, labels = next(iter(test_dataset))
-show_inference(5, features, labels, lambda x: torch.sigmoid(vit_model(x)).detach().cpu().numpy())
+# 将 TensorFlow 张量转换为 PyTorch 张量
+features_torch = torch.from_numpy(features.numpy()).permute(0, 3, 1, 2).float().to(device)
+labels_torch = torch.from_numpy(labels.numpy()).permute(0, 3, 1, 2).float().to(device)
+
+# 调用 show_inference 函数
+show_inference(5, features_torch, labels_torch, lambda x: torch.sigmoid(vit_model(x.permute(0, 3, 1, 2))).detach().cpu().numpy())
