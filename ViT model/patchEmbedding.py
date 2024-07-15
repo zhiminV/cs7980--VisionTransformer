@@ -38,9 +38,9 @@ class PatchEmbedding(nn.Module):
         patches = patches.contiguous().view(batch_size, channels, -1, self.patch_height * self.patch_width)
         patches = patches.permute(0, 2, 1, 3)  # Rearrange for linear projection
         
-        # Visualization: Reshape patches back to image format for visualization
-        patches_image = patches.contiguous().view(batch_size, -1, channels, self.patch_height, self.patch_width)
-        self.plot_patches(patches_image)
+        # # Visualization: Reshape patches back to image format for visualization
+        # patches_image = patches.contiguous().view(batch_size, -1, channels, self.patch_height, self.patch_width)
+        # self.plot_patches(patches_image)
         
         patches = patches.contiguous().view(batch_size, -1, channels * self.patch_height * self.patch_width)
         
@@ -66,7 +66,7 @@ class PatchEmbedding(nn.Module):
         fig, axs = plt.subplots(num_images, num_patches, figsize=(num_patches * 2, num_images * 2))
         for i in range(num_images):
             for j in range(num_patches):
-                img = patches_image[i, j].permute(1, 2, 0).detach().numpy()
+                img = patches_image[i, j].permute(1, 2, 0).detach().cpu().numpy()
                 axs[i, j].imshow(img[:, :, :3])
                 axs[i, j].axis('off')
         plt.show()
