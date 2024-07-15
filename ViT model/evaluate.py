@@ -24,13 +24,19 @@ def evaluate_model(prediction_function, eval_dataset, device='cuda'):
         # Clip target values to the range [0, 1]
         labels = torch.clamp(labels, 0, 1)
         
+        # Move predictions and labels to CPU before converting to numpy
+        predictions_cpu = predictions.cpu().numpy()
+        labels_cpu = labels.cpu().numpy()
+
         for i in range(inputs.shape[0]):
-            IoU_measures.append(IoU_metric(labels[i, 0], predictions[i]))
-            recall_measures.append(recall_metric(labels[i, 0], predictions[i]))
-            precision_measures.append(precision_metric(labels[i, 0], predictions[i]))
+            IoU_measures.append(IoU_metric(labels_cpu[i, 0], predictions_cpu[i]))
+            recall_measures.append(recall_metric(labels_cpu[i, 0], predictions_cpu[i]))
+            precision_measures.append(precision_metric(labels_cpu[i, 0], predictions_cpu[i]))
         
-        losses.append(bce_dice_loss(labels, torch.tensor(predictions, dtype=torch.float32).to(device)).item())
-            
+        # Calculate and append the loss
+        loss = bce_dice_loss(labels, torch.tensor(predictions, dtype=torch.float32).to(device))
+        losses.append(loss.item())  # Ensure the loss is a scalar and convert it to a Python float
+
     mean_IoU = np.mean(IoU_measures)
     mean_recall = np.mean(recall_measures)
     mean_precision = np.mean(precision_measures)
