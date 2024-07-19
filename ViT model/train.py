@@ -5,6 +5,7 @@ from tqdm import tqdm
 import numpy as np
 from lossFunction import bce_dice_loss
 from evaluate import evaluate_model
+import gc
 
 def train_model(model, train_dataset, validation_dataset, epochs=10, device='cuda'):
     optimizer = torch.optim.Adam(model.parameters(), lr=1e-4)
@@ -44,6 +45,11 @@ def train_model(model, train_dataset, validation_dataset, epochs=10, device='cud
 
             losses.append(loss.item())
             progress.set_postfix({'batch_loss': loss.item()})
+
+            # Clear cache and free up memory
+            del inputs, labels, outputs, loss
+            torch.cuda.empty_cache()
+            gc.collect()
         
         print("Evaluation...")
         model.eval()

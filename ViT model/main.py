@@ -27,10 +27,21 @@ config = {
 # Constants
 DATA_SIZE = 64
 PATCH_SIZE = 64
-BATCH_SIZE = 8 # 根据GPU 内存来调size， 4090 24G内存是可以跑 BATCH_SIZE = 8，Bronte 是32
+BATCH_SIZE = 4 # 根据GPU 内存来调size， 4090 24G内存是可以跑 BATCH_SIZE = 8，Bronte 是32
 NUM_CLASSES = 1
 EPOCHS = 15 # 根据需求改变
 LEARNING_RATE = 0.001
+
+gpus = tf.config.list_physical_devices('GPU')
+if gpus:
+    try:
+        for gpu in gpus:
+            tf.config.experimental.set_memory_growth(gpu, True)
+            tf.config.experimental.set_virtual_device_configuration(
+                gpu,
+                [tf.config.experimental.VirtualDeviceConfiguration(memory_limit= 50000)])  # 配置 TensorFlow 在使用 GPU 时的内存限制
+    except RuntimeError as e:
+        print(e)
 
 # Use GPU if available
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
@@ -38,7 +49,7 @@ vit_model = VisionTransformer(config, num_classes=NUM_CLASSES)
 
 # Load datasets
 train_dataset = get_dataset(
-    file_pattern='/Users/lzm/Desktop/7980 Capstone/rayan 项目/northamerica_2012-2023/train/*_ongoing_*.tfrecord',
+    file_pattern='/home/liang.zhimi/ondemand/northamerica_2012-2023/train/*_ongoing_*.tfrecord',
     data_size=DATA_SIZE,
     sample_size=PATCH_SIZE,
     batch_size=BATCH_SIZE,
@@ -51,7 +62,7 @@ train_dataset = get_dataset(
 )
 
 validation_dataset = get_dataset(
-    file_pattern='/Users/lzm/Desktop/7980 Capstone/rayan 项目/northamerica_2012-2023/val/*_ongoing_*.tfrecord',
+    file_pattern='/home/liang.zhimi/ondemand/northamerica_2012-2023/val/*_ongoing_*.tfrecord',
     data_size=DATA_SIZE,
     sample_size=PATCH_SIZE,
     batch_size=BATCH_SIZE,
@@ -64,7 +75,7 @@ validation_dataset = get_dataset(
 )
 
 test_dataset = get_dataset(
-    file_pattern='/Users/lzm/Desktop/7980 Capstone/rayan 项目/northamerica_2012-2023/test/*_ongoing_*.tfrecord',
+    file_pattern='/home/liang.zhimi/ondemand/northamerica_2012-2023/test/*_ongoing_*.tfrecord',
     data_size=DATA_SIZE,
     sample_size=PATCH_SIZE,
     batch_size=BATCH_SIZE,
