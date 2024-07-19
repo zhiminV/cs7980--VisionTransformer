@@ -6,7 +6,7 @@ pip install -r requirements.txt
 #
 pip install torch torchvision tqdm matplotlib opencv-python pyyaml
 
-#
+# If use Cuda, then also install the following
 pip install matplotlib==3.6
 
 pip3 install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu118
